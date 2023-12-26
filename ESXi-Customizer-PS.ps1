@@ -22,7 +22,6 @@
 # slashes have been changed to backslashes. The log function will now also log directly into the directory the script was
 # invoked from by default, so utilize -log to change this behaviour.
 # This POSIX fix was contributed by Joseph Bilac.
-
 #############################################################################################################################
 
 [CmdletBinding()] param(
@@ -51,7 +50,7 @@
     [switch]$v80 = $false,
     [switch]$update = $false,
     [string]$pZip = "",
-    [string]$log = ($env:TEMP + "./ESXi-Customizer-PS-" + $PID + ".log")
+    [string]$log = ("./ESXi-Customizer-PS-" + $PID + ".log")
 )
 
 # Constants

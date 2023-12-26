@@ -2,7 +2,7 @@
 #
 # ESXi-Customizer-PS.ps1 - a script to build a customized ESXi installation ISO using ImageBuilder
 #
-# Version:       2.9.0
+# Version:       2.9.0.1
 # Author:        Andreas Peetz (ESXi-Customizer-PS@v-front.de)
 # Info/Tutorial: https://esxi-customizer-ps.v-front.de/
 #
@@ -18,6 +18,11 @@
 #
 # A copy of the GNU General Public License is available at http://www.gnu.org/licenses/.
 #
+# This .1 update is for POSIX systems, and any other that use / instead of \ in their filesystem paths. All hardcoded forward
+# slashes have been changed to backslashes. The log function will now also log directly into the directory the script was
+# invoked from by default, so utilize -log to change this behaviour.
+# This POSIX fix was contributed by Joseph Bilac.
+
 #############################################################################################################################
 
 [CmdletBinding()] param(
@@ -46,7 +51,7 @@
     [switch]$v80 = $false,
     [switch]$update = $false,
     [string]$pZip = "",
-    [string]$log = ($env:TEMP + "\ESXi-Customizer-PS-" + $PID + ".log")
+    [string]$log = ($env:TEMP + "./ESXi-Customizer-PS-" + $PID + ".log")
 )
 
 # Constants
@@ -423,7 +428,7 @@ if ( ($pkgDir -ne @()) -or $update -or ($load -ne @()) -or ($remove -ne @()) ) {
                     write-host -F Red " [FAILED]`n      Probably not a valid Offline bundle, ignoring."
                 }
             }
-            foreach ($vibFile in Get-Item $dir\*.vib) {
+            foreach ($vibFile in Get-Item $dir/*.vib) {
                 write-host -nonewline "   Loading" $vibFile ...
                 try {
                     $vib1 = Get-EsxSoftwarePackage -PackageUrl $vibFile -ErrorAction SilentlyContinue
@@ -471,10 +476,10 @@ if ( ($pkgDir -ne @()) -or $update -or ($load -ne @()) -or ($remove -ne @()) ) {
 $cmd = "Export-EsxImageprofile -Imageprofile " + "`'" + $MyProfile.Name + "`'"
 
 if ($ozip) {
-    $outFile = "`'" + $outDir + "\" + $MyProfile.Name + ".zip" + "`'"
+    $outFile = "`'" + $outDir + "/" + $MyProfile.Name + ".zip" + "`'"
     $cmd = $cmd + " -ExportTobundle"
 } else {
-    $outFile = "`'" + $outDir + "\" + $MyProfile.Name + ".iso" + "`'"
+    $outFile = "`'" + $outDir + "/" + $MyProfile.Name + ".iso" + "`'"
     $cmd = $cmd + " -ExportToISO"
 }
 $cmd = $cmd + " -FilePath " + $outFile
@@ -501,11 +506,11 @@ write-host -F Green "`nAll done.`n"
 } finally {
     cleanup
     if (!($PSBoundParameters.ContainsKey('log')) -and $PSBoundParameters.ContainsKey('outDir') -and ($outFile -like '*zip*')) {
-        $finalLog = ($outDir + "\" + $MyProfile.Name + ".zip" + "-" + (get-date -Format yyyyMMddHHmm) + ".log")
+        $finalLog = ($outDir + "/" + $MyProfile.Name + ".zip" + "-" + (get-date -Format yyyyMMddHHmm) + ".log")
         Move-Item $log $finalLog -force
         write-host ("(Log file moved to " + $finalLog + ")`n")
     } elseif (!($PSBoundParameters.ContainsKey('log')) -and $PSBoundParameters.ContainsKey('outDir') -and ($outFile -like '*iso*')) {
-            $finalLog = ($outDir + "\" + $MyProfile.Name + ".iso" + "-" + (Get-Date -Format yyyyMMddHHmm) + ".log")
+            $finalLog = ($outDir + "/" + $MyProfile.Name + ".iso" + "-" + (Get-Date -Format yyyyMMddHHmm) + ".log")
             Move-Item $log $finalLog -force
             write-host ("(Log file moved to " + $finalLog + ")`n")
         }
